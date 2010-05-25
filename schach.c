@@ -28,18 +28,35 @@ Uint32 toggleColor(void)
   } 
 }
 
+static Uint8 r1 = 0;
+static Uint8 g1 = 0;
+static Uint8 b1 = 0;
+
+static Uint8 r2 = 255;
+static Uint8 g2 = 255;
+static Uint8 b2 = 255;
+
+#define TESTIMAGE 0x00000001
+
+static char * testImages[] = {"allInOne.bmp",\
+			      "blume.bmp",\
+			      "palette.bmp",\
+			      "testbild.bmp",\
+			      "testbild2.bmp",\
+			      "paprika.bmp",\
+			    "obst.bmp",};
+static int testImagesLength = 7;
+
+static int showTestImage(char * filename);
+
+static int iFlag = 0;
+
 int main(int argl, const char* args[])
 {
   int i,ii,ret;
   
-  Uint8 r1 = 0;
-  Uint8 g1 = 0;
-  Uint8 b1 = 0;
 
-  Uint8 r2 = 255;
-  Uint8 g2 = 255;
-  Uint8 b2 = 255;
-
+  
   argl--;
 
   if(argl>0){
@@ -54,6 +71,7 @@ int main(int argl, const char* args[])
 	  printf("-red\n");
 	  printf("-green\n");
 	  printf("-blue\n");
+	  printf("-testimage\n");
 	  return 0;
 	}
 	if(!strcmp(args[i],"-white")){
@@ -105,6 +123,9 @@ int main(int argl, const char* args[])
 	  W=640;
 	  H=480;
 	}
+	if(!strcmp(args[i],"-testimage")){
+	  iFlag |= TESTIMAGE; 
+	}
       }
   }
 
@@ -152,19 +173,82 @@ int main(int argl, const char* args[])
       rect.y +=Q;
     }
 
-
   SDL_UpdateRect(pS,0,0,0,0);
 
  SDL_Event theEvent;
+ int index = 0;
   for(;;){
-    if(SDL_WaitEvent(&theEvent)==0){
-      //printf("error while waiting for event\n");
-      return -1; 
-    }
-    if(theEvent.type==SDL_QUIT){
-      return 0;
-    }
+    if(iFlag == TESTIMAGE)
+      {
+	showTestImage(testImages[index]);
+	index++;
+	if(index>=testImagesLength)
+	  {
+	    index = 0;
+	  }
+	
+	while(SDL_PollEvent(&theEvent))
+	  {
+	    if(theEvent.type==SDL_QUIT){
+	      return 0;
+	    }
+	  }
+	SDL_Delay(2000);
+      }
+    else
+      {
+	if(SDL_WaitEvent(&theEvent)==0){
+	  //printf("error while waiting for event\n");
+	  return -1; 
+	}
+	if(theEvent.type==SDL_QUIT){
+	  return 0;
+	}
+      }
   }
-
+  
   return 0;  
+}
+
+static int showTestImage(char * filename)
+{
+  SDL_Surface * pImg1;
+  int i,ii,ret;
+
+  SDL_Rect rect;
+  rect.x=0;
+  rect.y=0;
+  rect.w=Q;
+  rect.h=Q;
+
+  for(ii=0;ii<(H/Q);ii++)
+    {
+      for(i = 0;i<(W/Q);i++)
+	{
+	  ret=SDL_FillRect(pS,&rect,toggleColor());
+	  if(ret)return -2;
+	  rect.x+=Q;
+	}
+      toggleColor(); 
+      rect.x=0;
+      rect.y +=Q;
+    }
+
+
+    if(TESTIMAGE==iFlag)
+    {
+      pImg1 = SDL_LoadBMP(filename);
+      if (pImg1 == NULL) {
+        fprintf(stderr, "Couldn't load %s: %s\n", filename, SDL_GetError());
+	return -1;
+      }
+      
+      if(SDL_BlitSurface(pImg1,NULL,pS,NULL))
+	{
+	  fprintf(stderr, "BlitSurface error: %s\n", SDL_GetError());
+	  return -1;
+	}
+    }
+    SDL_UpdateRect(pS,0,0,0,0);
+    return 0;
 }
