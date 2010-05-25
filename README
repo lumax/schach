@@ -1,0 +1,6 @@
+schach:
+zeigt Quadrate an
+
+Vorraussetzungen:
+  SDL 1.2
+
