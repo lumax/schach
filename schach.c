@@ -248,6 +248,7 @@ static int showTestImage(char * filename)
 	  fprintf(stderr, "BlitSurface error: %s\n", SDL_GetError());
 	  return -1;
 	}
+      SDL_FreeSurface(pImg1);
     }
     SDL_UpdateRect(pS,0,0,0,0);
     return 0;
